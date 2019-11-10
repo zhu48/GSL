@@ -30,3 +30,21 @@
 *.exe
 *.out
 *.app
+
+# Visual Studio
+*.vcxproj
+*.vcxproj.*
+*.sln
+Debug
+
+# CMake
+cmake_install.cmake
+CMakeCache.txt
+CMakeFiles
+
+# CTest
+CTestTestfile.cmake
+Testing
+
+# Catch2
+DartConfiguration.tcl
