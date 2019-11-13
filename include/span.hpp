@@ -13,7 +13,127 @@ namespace gsl {
 
     inline constexpr std::size_t dynamic_extent = std::numeric_limits<std::size_t>::max();
 
+    template<typename T, std::size_t Extent = dynamic_extent>
+    class span;
+
     namespace details {
+
+        template<typename T, std::size_t Extent, std::size_t N, typename ArrayType, typename = void>
+        struct array_is_valid : std::false_type {};
+
+        template<typename T, std::size_t Extent, std::size_t N, typename ArrayType>
+        struct array_is_valid<
+            T,
+            Extent,
+            N,
+            ArrayType,
+            std::enable_if_t<
+                ( Extent == dynamic_extent || Extent == N ) &&
+                std::is_convertible_v<
+                    std::remove_pointer_t<
+                        decltype(
+                            std::data( std::declval<std::add_lvalue_reference_t<ArrayType>>() )
+                        )
+                    >(*)[],
+                    T(*)[]
+                >
+            >
+        > :
+            std::true_type
+        {};
+
+        template<typename T, std::size_t Extent, std::size_t N, typename ArrayType>
+        inline constexpr bool array_is_valid_v = array_is_valid<T,Extent,N,ArrayType>::value;
+
+        template<typename T>
+        struct is_std_array : std::false_type {};
+
+        template<typename T, std::size_t N>
+        struct is_std_array<std::array<T,N>> : std::true_type {};
+
+        template<typename T>
+        inline constexpr bool is_std_array_v = is_std_array<T>::value;
+
+        template<typename T>
+        struct is_gsl_span : std::false_type {};
+
+        template<typename T, std::size_t N>
+        struct is_gsl_span<span<T,N>> : std::true_type {};
+
+        template<typename T>
+        inline constexpr bool is_gsl_span_v = is_gsl_span<T>::value;
+
+        template<typename T, typename = void>
+        struct has_size : std::false_type {};
+
+        template<typename T>
+        struct has_size<
+            T,
+            std::void_t<decltype( std::size( std::declval<T>() ) )>
+        > :
+            std::true_type
+        {};
+
+        template<typename T>
+        inline constexpr bool has_size_v = has_size<T>::value;
+
+        template<typename T, typename = void>
+        struct has_data : std::false_type {};
+
+        template<typename T>
+        struct has_data<
+            T,
+            std::void_t<decltype( std::data( std::declval<T>() ) )>
+        > :
+            std::true_type
+        {};
+
+        template<typename T>
+        inline constexpr bool has_data_v = has_data<T>::value;
+
+        template<typename T, typename = void>
+        struct has_size_and_data : std::false_type {};
+
+        template<typename T>
+        struct has_size_and_data<T, std::enable_if_t<has_size_v<T> && has_data_v<T>>> :
+            std::true_type
+        {};
+
+        template<typename T>
+        inline constexpr bool has_size_and_data_v = has_size_and_data<T>::value;
+
+        template<typename T, std::size_t Extent, typename ContainerType, typename = void>
+        struct container_is_valid : std::false_type {};
+
+        template<typename T, std::size_t Extent, typename ContainerType>
+        struct container_is_valid<
+            T,
+            Extent,
+            ContainerType,
+            std::enable_if_t<
+                !std::is_array_v<ContainerType> &&
+                !is_std_array_v<ContainerType> &&
+                !is_gsl_span_v<ContainerType> &&
+                has_size_and_data_v<ContainerType> &&
+                std::is_convertible_v<
+                    std::remove_pointer_t<
+                        decltype(
+                            std::data( std::declval<std::add_lvalue_reference_t<ContainerType>>() )
+                        )
+                    >(*)[],
+                    T(*)[]
+                >
+            >
+        > :
+            std::true_type
+        {};
+
+        template<typename T, std::size_t Extent, typename ContainerType>
+        inline constexpr bool container_is_valid_v = container_is_valid<
+            T,
+            Extent,
+            ContainerType
+        >::value;
 
         template<std::size_t Extent, std::size_t Offset, std::size_t Count, typename = void>
         struct subspan_extent : std::integral_constant<std::size_t,dynamic_extent> {};
@@ -57,7 +177,7 @@ namespace gsl {
 
     }
 
-    template<typename T, std::size_t Extent = dynamic_extent>
+    template<typename T, std::size_t Extent>
     class span {
         public:
             using element_type = T;
@@ -75,25 +195,55 @@ namespace gsl {
 
             static constexpr std::size_t extent = Extent;
 
+            template<
+                typename = std::enable_if_t<
+                    Extent == 0 || Extent == dynamic_extent
+                >
+            >
             constexpr span() noexcept;
 
             constexpr span( pointer ptr, index_type count );
 
             constexpr span( pointer first, pointer last );
 
-            template<std::size_t N>
+            template<
+                std::size_t N,
+                typename = std::enable_if_t<
+                    details::array_is_valid_v<element_type,Extent,N,element_type[N]>
+                >
+            >
             constexpr span( element_type(&arr)[N] ) noexcept;
 
-            template<std::size_t N>
+            template<
+                std::size_t N,
+                typename = std::enable_if_t<
+                    details::array_is_valid_v<element_type,Extent,N,std::array<value_type,N>>
+                >
+            >
             constexpr span( std::array<value_type,N>& arr ) noexcept;
 
-            template<std::size_t N>
+            template<
+                std::size_t N,
+                typename = std::enable_if_t<
+                    details::array_is_valid_v<element_type,Extent,N,const std::array<value_type,N>>
+                >
+            >
             constexpr span( const std::array<value_type,N>& arr ) noexcept;
 
-            template<typename Container>
+            template<
+                typename Container,
+                typename = std::enable_if_t<
+                    details::container_is_valid_v<element_type,Extent,Container>
+                >
+            >
             constexpr span( Container& cont );
 
-            template<typename Container>
+            template<
+                typename Container,
+                typename = std::enable_if_t<
+                    details::container_is_valid_v<element_type,Extent,const Container>
+                >
+            >
             constexpr span( const Container& cont );
 
             template<typename U, std::size_t N>
@@ -137,7 +287,7 @@ namespace gsl {
             template<std::size_t Count>
             constexpr span<element_type,Count> first() const;
 
-            constexpr span<element_type,std::dynamic_extent> first( std::size_t Count ) const;
+            constexpr span<element_type,dynamic_extent> first( std::size_t Count ) const;
 
             template<std::size_t Count>
             constexpr span<element_type,Count> last() const;
