@@ -11,7 +11,7 @@
 #include "span.hpp"
 
 TEMPLATE_TEST_CASE_SIG(
-    "span constructed from various sources have correct data and size",
+    "span constructed from various sources have correct data, size, and emptiness",
     "[span][ctor][data][size]",
     ( ( typename T , std::size_t Extent ,   typename TestType            ), T, Extent, TestType ),
     (   int        ,                   8,   int[8]                       ),
@@ -25,13 +25,17 @@ TEMPLATE_TEST_CASE_SIG(
     (   std::string, gsl::dynamic_extent,   std::vector<std::string>     )
 ) {
     SECTION( "default-constructed span" ) {
-        gsl::span<TestType> dyn_ext_span;
+        gsl::span<T> dyn_ext_span;
         CHECK( dyn_ext_span.data() == nullptr );
         CHECK( dyn_ext_span.size() == 0 );
+        CHECK( dyn_ext_span.size_bytes() == 0 );
+        CHECK( dyn_ext_span.empty() );
 
-        gsl::span<TestType,0> stat_ext_span;
+        gsl::span<T,0> stat_ext_span;
         CHECK( stat_ext_span.data() == nullptr );
         CHECK( stat_ext_span.size() == 0 );
+        CHECK( stat_ext_span.size_bytes() == 0 );
+        CHECK( stat_ext_span.empty() );
     }
 
     SECTION( "pointer-count-constructed span" ) {
@@ -47,10 +51,14 @@ TEMPLATE_TEST_CASE_SIG(
         gsl::span<T> dyn_ext_span( std::data( test_data ), std::size( test_data ) );
         CHECK( dyn_ext_span.data() == std::data( test_data ) );
         CHECK( dyn_ext_span.size() == std::size( test_data ) );
+        CHECK( dyn_ext_span.size_bytes() == std::size( test_data ) * sizeof( T ) );
+        CHECK( dyn_ext_span.empty() == std::empty( test_data ) );
 
         gsl::span<T,Extent> stat_ext_span( std::data( test_data ), std::size( test_data ) );
         CHECK( dyn_ext_span.data() == std::data( test_data ) );
         CHECK( dyn_ext_span.size() == std::size( test_data ) );
+        CHECK( dyn_ext_span.size_bytes() == std::size( test_data ) * sizeof( T ) );
+        CHECK( dyn_ext_span.empty() == std::empty( test_data ) );
     }
 
     SECTION( "pointer-pair-constructed span" ) {
@@ -69,6 +77,8 @@ TEMPLATE_TEST_CASE_SIG(
         );
         CHECK( dyn_ext_span.data() == std::data( test_data ) );
         CHECK( dyn_ext_span.size() == std::size( test_data ) );
+        CHECK( dyn_ext_span.size_bytes() == std::size( test_data ) * sizeof( T ) );
+        CHECK( dyn_ext_span.empty() == std::empty( test_data ) );
 
         gsl::span<T,Extent> stat_ext_span(
             std::data( test_data ),
@@ -76,6 +86,8 @@ TEMPLATE_TEST_CASE_SIG(
         );
         CHECK( dyn_ext_span.data() == std::data( test_data ) );
         CHECK( dyn_ext_span.size() == std::size( test_data ) );
+        CHECK( dyn_ext_span.size_bytes() == std::size( test_data ) * sizeof( T ) );
+        CHECK( dyn_ext_span.empty() == std::empty( test_data ) );
     }
 
     SECTION( "container-constructed span" ) {
@@ -91,9 +103,13 @@ TEMPLATE_TEST_CASE_SIG(
         gsl::span<T> dyn_ext_span( test_data );
         CHECK( dyn_ext_span.data() == std::data( test_data ) );
         CHECK( dyn_ext_span.size() == std::size( test_data ) );
+        CHECK( dyn_ext_span.size_bytes() == std::size( test_data ) * sizeof( T ) );
+        CHECK( dyn_ext_span.empty() == std::empty( test_data ) );
 
         gsl::span<T,Extent> stat_ext_span( test_data );
         CHECK( stat_ext_span.data() == std::data( test_data ) );
         CHECK( stat_ext_span.size() == std::size( test_data ) );
+        CHECK( stat_ext_span.size_bytes() == std::size( test_data ) * sizeof( T ) );
+        CHECK( stat_ext_span.empty() == std::empty( test_data ) );
     }
 }

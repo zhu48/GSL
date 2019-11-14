@@ -1,4 +1,3 @@
-#include "gsl_util.hpp"
 
 namespace gsl {
 
@@ -162,7 +161,9 @@ namespace gsl {
     template<typename T, std::size_t Extent>
     constexpr typename span<T,Extent>::index_type
     span<T,Extent>::size_bytes() const noexcept {
-        return narrow_cast<std::uintptr_t>( end_pos ) - narrow_cast<std::uintptr_t>( begin_pos );
+        return
+            reinterpret_cast<std::uintptr_t>( end_pos ) -
+            reinterpret_cast<std::uintptr_t>( begin_pos );
     }
 
     template<typename T, std::size_t Extent>
