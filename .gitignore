@@ -32,10 +32,13 @@
 *.app
 
 # Visual Studio
+.vs
 *.vcxproj
 *.vcxproj.*
 *.sln
-Debug
+*.pdb
+*.dir
+*.tlog
 
 # Make
 Makefile
