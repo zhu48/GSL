@@ -246,7 +246,14 @@ namespace gsl {
             >
             constexpr span( const Container& cont );
 
-            template<typename U, std::size_t N>
+            template<
+                typename    U,
+                std::size_t N,
+                typename = std::enable_if_t<
+                    ( extent == dynamic_extent || extent == N ) &&
+                    std::is_convertible_v<U(*)[],element_type(*)[]>
+                >
+            >
             constexpr span( const span<U,N>& s ) noexcept;
 
             constexpr span( const span& other ) noexcept = default;
