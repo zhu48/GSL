@@ -31,7 +31,7 @@ namespace gsl {
     template<std::size_t N, typename>
     constexpr span<T,Extent>::span( element_type(&arr)[N] ) noexcept :
         begin_pos( std::data( arr ) ),
-        end_pos( &( *std::end( arr ) ) )
+        end_pos( std::data( arr ) + std::size( arr ) )
     {
         return;
     }
@@ -40,7 +40,7 @@ namespace gsl {
     template<std::size_t N, typename>
     constexpr span<T,Extent>::span( std::array<value_type,N>& arr ) noexcept :
         begin_pos( std::data( arr ) ),
-        end_pos( &( *std::end( arr ) ) )
+        end_pos( std::data( arr ) + std::size( arr ) )
     {
         return;
     }
@@ -49,7 +49,7 @@ namespace gsl {
     template<std::size_t N, typename>
     constexpr span<T,Extent>::span( const std::array<value_type,N>& arr ) noexcept :
         begin_pos( std::data( arr ) ),
-        end_pos( &( *std::end( arr ) ) )
+        end_pos( std::data( arr ) + std::size( arr ) )
     {
         return;
     }
@@ -58,7 +58,7 @@ namespace gsl {
     template<typename Container, typename>
     constexpr span<T,Extent>::span( Container& cont ) :
         begin_pos( std::data( cont ) ),
-        end_pos( &( *std::end( cont ) ) )
+        end_pos( std::data( cont ) + std::size( cont ) )
     {
         return;
     }
@@ -67,7 +67,7 @@ namespace gsl {
     template<typename Container, typename>
     constexpr span<T,Extent>::span( const Container& cont ) :
         begin_pos( std::data( cont ) ),
-        end_pos( &( *std::end( cont ) ) )
+        end_pos( std::data( cont ) + std::size( cont ) )
     {
         return;
     }
@@ -76,7 +76,7 @@ namespace gsl {
     template<typename U, std::size_t N, typename>
     constexpr span<T,Extent>::span( const span<U,N>& s ) noexcept :
         begin_pos( std::data( s ) ),
-        end_pos( &( *std::end( s ) ) )
+        end_pos( std::data( s ) + std::size( s ) )
     {
         return;
     }
