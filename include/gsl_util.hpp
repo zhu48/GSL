@@ -8,7 +8,7 @@ namespace gsl {
     /**
      * Index type to avoid common errors and help the optimizer.
      * 
-     * \note C++ Core Guidlines ES.107
+     * \note C++ Core Guidelines ES.107
      */
     using index = std::ptrdiff_t;
 
