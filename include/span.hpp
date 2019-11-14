@@ -309,6 +309,10 @@ namespace gsl {
 
             constexpr span<element_type,dynamic_extent>
             subspan( std::size_t Offset, std::size_t Count = dynamic_extent ) const;
+
+        private:
+            pointer begin_pos;
+            pointer end_pos;
     };
 
 }
@@ -357,5 +361,7 @@ namespace std {
     };
 
 }
+
+#include "ipp/span.ipp"
 
 #endif // #ifndef GSL_SPAN_HPP

@@ -35,10 +35,14 @@ if(BUILD_TESTING)
     find_package(Catch2 QUIET)
 
     if(Catch2_FOUND)
+        message(STATUS "Found Catch2, creating test target." )
+
         add_executable(test_span ${CMAKE_CURRENT_LIST_DIR}/test/test_span.cpp)
         target_link_libraries(test_span gsl)
         target_link_libraries(test_span Catch2::Catch2)
 
         add_test(NAME test_span COMMAND test_span)
+    else()
+        message(STATUS "Could not find Catch2, skipping test target." )
     endif()
 endif()
