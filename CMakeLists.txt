@@ -29,6 +29,7 @@ if(NOT DEFINED CMAKE_INTERPROCEDURAL_OPTIMIZATION)
 endif()
 
 add_library(gsl INTERFACE)
+target_compile_features(gsl INTERFACE cxx_std_17)
 target_include_directories(gsl INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 if(BUILD_TESTING)
