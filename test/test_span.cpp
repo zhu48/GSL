@@ -112,4 +112,42 @@ TEMPLATE_TEST_CASE_SIG(
         CHECK( stat_ext_span.size_bytes() == std::size( test_data ) * sizeof( T ) );
         CHECK( stat_ext_span.empty() == std::empty( test_data ) );
     }
+
+    SECTION( "span-constructed span" ) {
+        TestType test_data;
+        if constexpr ( Extent == gsl::dynamic_extent ) {
+            auto num_elems = GENERATE( take( 1, random<gsl::index>( 0, 32 ) ) );
+
+            for ( gsl::index i = 0; i < num_elems; ++i ) {
+                test_data.push_back( T{} );
+            }
+        }
+
+        gsl::span<T> original_dyn_span( test_data );
+        gsl::span<T,Extent> original_stat_span( test_data );
+
+        gsl::span<T> dyn_from_dyn( original_dyn_span );
+        CHECK( dyn_from_dyn.data() == std::data( test_data ) );
+        CHECK( dyn_from_dyn.size() == std::size( test_data ) );
+        CHECK( dyn_from_dyn.size_bytes() == std::size( test_data ) * sizeof( T ) );
+        CHECK( dyn_from_dyn.empty() == std::empty( test_data ) );
+
+        gsl::span<T,Extent> stat_from_dyn( original_dyn_span );
+        CHECK( stat_from_dyn.data() == std::data( test_data ) );
+        CHECK( stat_from_dyn.size() == std::size( test_data ) );
+        CHECK( stat_from_dyn.size_bytes() == std::size( test_data ) * sizeof( T ) );
+        CHECK( stat_from_dyn.empty() == std::empty( test_data ) );
+
+        gsl::span<T> dyn_from_stat( original_stat_span );
+        CHECK( dyn_from_stat.data() == std::data( test_data ) );
+        CHECK( dyn_from_stat.size() == std::size( test_data ) );
+        CHECK( dyn_from_stat.size_bytes() == std::size( test_data ) * sizeof( T ) );
+        CHECK( dyn_from_stat.empty() == std::empty( test_data ) );
+
+        gsl::span<T,Extent> stat_from_stat( original_stat_span );
+        CHECK( stat_from_stat.data() == std::data( test_data ) );
+        CHECK( stat_from_stat.size() == std::size( test_data ) );
+        CHECK( stat_from_stat.size_bytes() == std::size( test_data ) * sizeof( T ) );
+        CHECK( stat_from_stat.empty() == std::empty( test_data ) );
+    }
 }
