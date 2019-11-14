@@ -42,7 +42,12 @@ if(BUILD_TESTING)
         target_link_libraries(test_span gsl)
         target_link_libraries(test_span Catch2::Catch2)
 
-        add_test(NAME test_span COMMAND test_span)
+        add_test(
+            NAME
+                test_span
+            COMMAND
+                test_span --out ${CMAKE_CURRENT_LIST_DIR}/test/test_span.catch2log
+        )
     else()
         message(STATUS "Could not find Catch2, skipping test target." )
     endif()
