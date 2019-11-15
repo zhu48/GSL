@@ -38,7 +38,10 @@
 *.sln
 *.pdb
 *.dir
+*.log
 *.tlog
+*.iobj
+*.ipdb
 
 # Make
 Makefile
