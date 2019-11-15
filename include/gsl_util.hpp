@@ -3,6 +3,11 @@
 
 #include <cstddef>
 
+#include <initializer_list>
+
+#include "gsl_assert.hpp"
+#include "gsl_detail.hpp"
+
 namespace gsl {
 
     /**
@@ -27,6 +32,24 @@ namespace gsl {
     template <class N, class W>
     constexpr N narrow_cast( W&& val ) noexcept {
         return static_cast<N>( std::forward<W>( val ) );
+    }
+
+    template<typename T, std::size_t N>
+    constexpr T& at( T ( &arr )[N], index i ) {
+        Expects( i >= 0 && i < narrow_cast<index>( N ) );
+        return arr[i];
+    }
+
+    template<typename Container>
+    constexpr auto at( Container& cont, index i ) -> decltype( cont[cont.size()] ) {
+        Expects( i >= 0 && i < detail::ssize( cont ) );
+        return cont[i];
+    }
+
+    template<typename T>
+    constexpr T at( const std::initializer_list<T> cont, index i ) {
+        Expects( i >= 0 && i < detail::ssize( cont ) );
+        return *( std::begin( cont ) + i );
     }
 
 }
