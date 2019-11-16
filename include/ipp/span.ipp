@@ -214,3 +214,47 @@ namespace gsl {
     }
 
 }
+
+template<typename T, std::size_t Extent>
+constexpr typename gsl::span<T,Extent>::iterator
+std::begin( gsl::span<T,Extent> s ) noexcept {
+    return s.begin();
+}
+
+template<typename T, std::size_t Extent>
+constexpr typename gsl::span<T,Extent>::iterator
+std::end( gsl::span<T,Extent> s ) noexcept {
+    return s.end();
+}
+
+template<typename T, std::size_t N>
+gsl::span<const std::byte, gsl::details::bytes_span_extent_v<T,N>>
+std::as_bytes( gsl::span<T,N> s ) noexcept {
+    return gsl::span<const std::byte, gsl::details::bytes_span_extent_v<T,N>>(
+        reinterpret_cast<const std::byte*>( data( s ) ),
+        s.size_bytes()
+    );
+}
+
+template<typename T, std::size_t N, typename>
+gsl::span<std::byte, gsl::details::bytes_span_extent_v<T,N>>
+std::as_writable_bytes( gsl::span<T,N> s ) noexcept {
+    return gsl::span<std::byte, gsl::details::bytes_span_extent_v<T,N>>(
+        reinterpret_cast<std::byte*>( data( s ) ),
+        s.size_bytes()
+    );
+}
+
+template<std::size_t I, typename T, std::size_t N>
+constexpr T& std::get(
+    std::enable_if_t<
+        (
+            N != gsl::dynamic_extent &&
+            I >= 0 &&
+            I < N
+        ),
+        gsl::span<T,N>
+    > s
+) noexcept {
+    return s[I];
+}

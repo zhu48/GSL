@@ -331,7 +331,7 @@ namespace std {
     gsl::span<const std::byte, gsl::details::bytes_span_extent_v<T,N>>
     as_bytes( gsl::span<T,N> s ) noexcept;
 
-    template<typename T, std::size_t N>
+    template<typename T, std::size_t N, typename = std::enable_if_t<!std::is_const_v<T>>>
     gsl::span<std::byte, gsl::details::bytes_span_extent_v<T,N>>
     as_writable_bytes( gsl::span<T,N> s ) noexcept;
 
@@ -351,7 +351,7 @@ namespace std {
     class tuple_size<gsl::span<T,N>> : public std::integral_constant<std::size_t,N> {};
 
     template<typename T>
-    class tuple_size<gsl::span<T,gsl::dynamic_extent>>;
+    class tuple_size<gsl::span<T,gsl::dynamic_extent>> {};
 
     template<std::size_t I, typename T, std::size_t N>
     struct tuple_element<I,gsl::span<T,N>> {
