@@ -299,7 +299,7 @@ namespace gsl {
             template<std::size_t Count>
             constexpr span<element_type,Count> last() const;
 
-            constexpr span<element_type,dynamic_extent> last( std::size_t Count );
+            constexpr span<element_type,dynamic_extent> last( std::size_t Count ) const;
 
             template<std::size_t Offset, std::size_t Count = dynamic_extent>
             constexpr span<

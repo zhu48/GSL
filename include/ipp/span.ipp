@@ -194,7 +194,7 @@ namespace gsl {
 
     template<typename T, std::size_t Extent>
     constexpr span<typename span<T,Extent>::element_type,dynamic_extent>
-    span<T,Extent>::last( std::size_t Count ) {
+    span<T,Extent>::last( std::size_t Count ) const {
         return span( end_pos - Count, Count );
     }
 
