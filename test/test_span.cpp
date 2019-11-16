@@ -36,7 +36,7 @@ constexpr std::ptrdiff_t ssize( const T (&array)[N] ) noexcept {
 }
 
 TEMPLATE_TEST_CASE_SIG(
-    "span constructed from various sources have correct data, size, and emptiness",
+    "spans constructed from various sources have correct data, size, and emptiness",
     "[span][ctor][data][size]",
     ( ( typename T , std::size_t Extent ,   typename TestType            ), T, Extent, TestType ),
     (   int        ,                   8,   int[8]                       ),
@@ -232,5 +232,167 @@ TEMPLATE_TEST_CASE_SIG(
     std::copy( reference_data.cbegin(), reference_data.cend(), mutable_span.begin() );
     for ( gsl::index i = 0; i < ssize( test_data ); ++i ) {
         CHECK( test_data[i] == reference_data[i] );
+    }
+}
+
+TEST_CASE(
+    "subspans obtained from existing spans have correct data, size, and emptiness",
+    "[span][ctor][data][size]"
+) {
+    int test_arr[15];
+
+    const gsl::span<int> original_dyn_span( test_arr );
+    const gsl::span<int,15> original_stat_span( test_arr );
+    const gsl::span<const int> original_const_dyn_span( test_arr );
+    const gsl::span<const int,15> original_const_stat_span( test_arr );
+
+    SECTION( "subspans created using span::first()" ) {
+        const auto test_span_0 = original_dyn_span.first<7>();
+        CHECK( test_span_0.data() == std::data( test_arr ) );
+        CHECK( test_span_0.size() == 7 );
+        CHECK( test_span_0.size_bytes() == 7 * sizeof( int ) );
+        CHECK( !test_span_0.empty() );
+
+        const auto test_span_1 = original_dyn_span.first( 7 );
+        CHECK( test_span_1.data() == std::data( test_arr ) );
+        CHECK( test_span_1.size() == 7 );
+        CHECK( test_span_1.size_bytes() == 7 * sizeof( int ) );
+        CHECK( !test_span_1.empty() );
+
+        const auto test_span_2 = original_stat_span.first<7>();
+        CHECK( test_span_2.data() == std::data( test_arr ) );
+        CHECK( test_span_2.size() == 7 );
+        CHECK( test_span_2.size_bytes() == 7 * sizeof( int ) );
+        CHECK( !test_span_2.empty() );
+
+        const auto test_span_3 = original_stat_span.first( 7 );
+        CHECK( test_span_3.data() == std::data( test_arr ) );
+        CHECK( test_span_3.size() == 7 );
+        CHECK( test_span_3.size_bytes() == 7 * sizeof( int ) );
+        CHECK( !test_span_3.empty() );
+
+        const auto test_span_4 = original_const_dyn_span.first<7>();
+        CHECK( test_span_4.data() == std::data( test_arr ) );
+        CHECK( test_span_4.size() == 7 );
+        CHECK( test_span_4.size_bytes() == 7 * sizeof( int ) );
+        CHECK( !test_span_4.empty() );
+
+        const auto test_span_5 = original_const_dyn_span.first( 7 );
+        CHECK( test_span_5.data() == std::data( test_arr ) );
+        CHECK( test_span_5.size() == 7 );
+        CHECK( test_span_5.size_bytes() == 7 * sizeof( int ) );
+        CHECK( !test_span_5.empty() );
+
+        const auto test_span_6 = original_const_stat_span.first<7>();
+        CHECK( test_span_6.data() == std::data( test_arr ) );
+        CHECK( test_span_6.size() == 7 );
+        CHECK( test_span_6.size_bytes() == 7 * sizeof( int ) );
+        CHECK( !test_span_6.empty() );
+
+        const auto test_span_7 = original_const_stat_span.first( 7 );
+        CHECK( test_span_7.data() == std::data( test_arr ) );
+        CHECK( test_span_7.size() == 7 );
+        CHECK( test_span_7.size_bytes() == 7 * sizeof( int ) );
+        CHECK( !test_span_7.empty() );
+    }
+
+    SECTION( "subspans created using span::last()" ) {
+        const auto test_span_0 = original_dyn_span.last<7>();
+        CHECK( test_span_0.data() == std::data( test_arr ) + 8 );
+        CHECK( test_span_0.size() == 7 );
+        CHECK( test_span_0.size_bytes() == 7 * sizeof( int ) );
+        CHECK( !test_span_0.empty() );
+
+        const auto test_span_1 = original_dyn_span.last( 7 );
+        CHECK( test_span_1.data() == std::data( test_arr ) + 8 );
+        CHECK( test_span_1.size() == 7 );
+        CHECK( test_span_1.size_bytes() == 7 * sizeof( int ) );
+        CHECK( !test_span_1.empty() );
+
+        const auto test_span_2 = original_stat_span.last<7>();
+        CHECK( test_span_2.data() == std::data( test_arr ) + 8 );
+        CHECK( test_span_2.size() == 7 );
+        CHECK( test_span_2.size_bytes() == 7 * sizeof( int ) );
+        CHECK( !test_span_2.empty() );
+
+        const auto test_span_3 = original_stat_span.last( 7 );
+        CHECK( test_span_3.data() == std::data( test_arr ) + 8 );
+        CHECK( test_span_3.size() == 7 );
+        CHECK( test_span_3.size_bytes() == 7 * sizeof( int ) );
+        CHECK( !test_span_3.empty() );
+
+        const auto test_span_4 = original_const_dyn_span.last<7>();
+        CHECK( test_span_4.data() == std::data( test_arr ) + 8 );
+        CHECK( test_span_4.size() == 7 );
+        CHECK( test_span_4.size_bytes() == 7 * sizeof( int ) );
+        CHECK( !test_span_4.empty() );
+
+        const auto test_span_5 = original_const_dyn_span.last( 7 );
+        CHECK( test_span_5.data() == std::data( test_arr ) + 8 );
+        CHECK( test_span_5.size() == 7 );
+        CHECK( test_span_5.size_bytes() == 7 * sizeof( int ) );
+        CHECK( !test_span_5.empty() );
+
+        const auto test_span_6 = original_const_stat_span.last<7>();
+        CHECK( test_span_6.data() == std::data( test_arr ) + 8 );
+        CHECK( test_span_6.size() == 7 );
+        CHECK( test_span_6.size_bytes() == 7 * sizeof( int ) );
+        CHECK( !test_span_6.empty() );
+
+        const auto test_span_7 = original_const_stat_span.last( 7 );
+        CHECK( test_span_7.data() == std::data( test_arr ) + 8 );
+        CHECK( test_span_7.size() == 7 );
+        CHECK( test_span_7.size_bytes() == 7 * sizeof( int ) );
+        CHECK( !test_span_7.empty() );
+    }
+
+    SECTION( "subspans created using span::subspan()" ) {
+        const auto test_span_0 = original_dyn_span.subspan<2,7>();
+        CHECK( test_span_0.data() == std::data( test_arr ) + 2 );
+        CHECK( test_span_0.size() == 7 );
+        CHECK( test_span_0.size_bytes() == 7 * sizeof( int ) );
+        CHECK( !test_span_0.empty() );
+
+        const auto test_span_1 = original_dyn_span.subspan( 2, 7 );
+        CHECK( test_span_1.data() == std::data( test_arr ) + 2 );
+        CHECK( test_span_1.size() == 7 );
+        CHECK( test_span_1.size_bytes() == 7 * sizeof( int ) );
+        CHECK( !test_span_1.empty() );
+
+        const auto test_span_2 = original_stat_span.subspan<2,7>();
+        CHECK( test_span_2.data() == std::data( test_arr ) + 2 );
+        CHECK( test_span_2.size() == 7 );
+        CHECK( test_span_2.size_bytes() == 7 * sizeof( int ) );
+        CHECK( !test_span_2.empty() );
+
+        const auto test_span_3 = original_stat_span.subspan( 2, 7 );
+        CHECK( test_span_3.data() == std::data( test_arr ) + 2 );
+        CHECK( test_span_3.size() == 7 );
+        CHECK( test_span_3.size_bytes() == 7 * sizeof( int ) );
+        CHECK( !test_span_3.empty() );
+
+        const auto test_span_4 = original_const_dyn_span.subspan<2,7>();
+        CHECK( test_span_4.data() == std::data( test_arr ) + 2 );
+        CHECK( test_span_4.size() == 7 );
+        CHECK( test_span_4.size_bytes() == 7 * sizeof( int ) );
+        CHECK( !test_span_4.empty() );
+
+        const auto test_span_5 = original_const_dyn_span.subspan( 2, 7 );
+        CHECK( test_span_5.data() == std::data( test_arr ) + 2 );
+        CHECK( test_span_5.size() == 7 );
+        CHECK( test_span_5.size_bytes() == 7 * sizeof( int ) );
+        CHECK( !test_span_5.empty() );
+
+        const auto test_span_6 = original_const_stat_span.subspan<2,7>();
+        CHECK( test_span_6.data() == std::data( test_arr ) + 2 );
+        CHECK( test_span_6.size() == 7 );
+        CHECK( test_span_6.size_bytes() == 7 * sizeof( int ) );
+        CHECK( !test_span_6.empty() );
+
+        const auto test_span_7 = original_const_stat_span.subspan( 2, 7 );
+        CHECK( test_span_7.data() == std::data( test_arr ) + 2 );
+        CHECK( test_span_7.size() == 7 );
+        CHECK( test_span_7.size_bytes() == 7 * sizeof( int ) );
+        CHECK( !test_span_7.empty() );
     }
 }
