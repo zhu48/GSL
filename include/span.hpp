@@ -11,8 +11,17 @@
 
 namespace gsl {
 
+    /**
+     * Sentinel span Extent value indicating the span has a runtime-determined extent.
+     */
     inline constexpr std::size_t dynamic_extent = std::numeric_limits<std::size_t>::max();
 
+    /**
+     * A non-owning view over a portion of a contiguous range.
+     * 
+     * \tparam T      The type of elements the contiguous range contains.
+     * \tparam Extent The static number of elements this span grants a view over.
+     */
     template<typename T, std::size_t Extent = dynamic_extent>
     class span;
 
@@ -193,8 +202,17 @@ namespace gsl {
             using reverse_iterator = std::reverse_iterator<iterator>;
             using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
+            /**
+             * The static number of elements in the sequence.
+             */
             static constexpr std::size_t extent = Extent;
 
+            /**
+             * Construct a span that does not grant a view over anything.
+             * 
+             * This overload only participates in overload resolution if the extent is zero or
+             * dynamic.
+             */
             template<
                 typename = std::enable_if_t<
                     Extent == 0 || Extent == dynamic_extent
@@ -202,10 +220,34 @@ namespace gsl {
             >
             constexpr span() noexcept;
 
+            /**
+             * Construct a span given a pointer to the underlying range and a number of elements.
+             * 
+             * \param ptr   Pointer to the first element in the range to span over.
+             * \param count The number of elements to span over.
+             */
             constexpr span( pointer ptr, index_type count );
 
+            /**
+             * Construct a span given pointers to the first and last elements in the range.
+             * 
+             * \param first Pointer to the first elements in the range to span over.
+             * \param last  Pointer to the last element to span over.
+             */
             constexpr span( pointer first, pointer last );
 
+            /**
+             * Construct a span over a built-in array.
+             * 
+             * This overload only participates in overload resolution if:
+             * - the span extent is equal to N or is dynamic and
+             * - a pointer to the array's element type is convertible to a pointer to the span's
+             *   element type.
+             * 
+             * \tparam N The number of elements the array has.
+             * 
+             * \param arr The array to span over.
+             */
             template<
                 std::size_t N,
                 typename = std::enable_if_t<
@@ -214,6 +256,18 @@ namespace gsl {
             >
             constexpr span( element_type(&arr)[N] ) noexcept;
 
+            /**
+             * Construct a span over a mutable STL array.
+             * 
+             * This overload only participates in overload resolution if:
+             * - the span extent is equal to N or is dynamic and
+             * - a pointer to the array's element type is convertible to a pointer to the span's
+             *   element type.
+             * 
+             * \tparam N The number of elements the array has.
+             * 
+             * \param arr The array to span over.
+             */
             template<
                 std::size_t N,
                 typename = std::enable_if_t<
@@ -222,6 +276,18 @@ namespace gsl {
             >
             constexpr span( std::array<value_type,N>& arr ) noexcept;
 
+            /**
+             * Construct a span over a const-qualified STL array.
+             * 
+             * This overload only participates in overload resolution if:
+             * - the span extent is equal to N or is dynamic and
+             * - a pointer to the array's element type is convertible to a pointer to the span's
+             *   element type.
+             * 
+             * \tparam N The number of elements the array has.
+             * 
+             * \param arr The array to span over.
+             */
             template<
                 std::size_t N,
                 typename = std::enable_if_t<
@@ -230,6 +296,19 @@ namespace gsl {
             >
             constexpr span( const std::array<value_type,N>& arr ) noexcept;
 
+            /**
+             * Construct a span over a mutable contiguous container.
+             * 
+             * This overload only participates in overload resolution if:
+             * - the container is not a span, an STL array, or a built-in array, and
+             * - the container provides access to its underlying data pointer and its size, and
+             * - a pointer to the container's element type is convertible to a pointer to the span's
+             *   element type.
+             * 
+             * \tparam Container The type of container to span over.
+             * 
+             * \param cont The container to span over.
+             */
             template<
                 typename Container,
                 typename = std::enable_if_t<
@@ -238,6 +317,19 @@ namespace gsl {
             >
             constexpr span( Container& cont );
 
+            /**
+             * Construct a span over a const-qualified contiguous container.
+             * 
+             * This overload only participates in overload resolution if:
+             * - the container is not a span, an STL array, or a built-in array, and
+             * - the container provides access to its underlying data pointer and its size, and
+             * - a pointer to the container's element type is convertible to a pointer to the span's
+             *   element type.
+             * 
+             * \tparam Container The type of container to span over.
+             * 
+             * \param cont The container to span over.
+             */
             template<
                 typename Container,
                 typename = std::enable_if_t<
@@ -246,6 +338,19 @@ namespace gsl {
             >
             constexpr span( const Container& cont );
 
+            /**
+             * Construct a span from a span of a different type.
+             * 
+             * This overload only participates in overload resolution if:
+             * - the constructed span has extent that is dynamic or equal the source span's, and
+             * - a pointer to the source span's element type is convertible to a pointer to the
+             *   constructed span's element type.
+             * 
+             * \tparam U The element type of the source span.
+             * \tparam N The extent of the source span.
+             * 
+             * \param s The source span to construct a new span from.
+             */
             template<
                 typename    U,
                 std::size_t N,
@@ -256,63 +361,213 @@ namespace gsl {
             >
             constexpr span( const span<U,N>& s ) noexcept;
 
+            /**
+             * Copy constructor.
+             * 
+             * Construct a span that spans over the same range as the source span.
+             * 
+             * \param other The span to make a copy of.
+             */
             constexpr span( const span& other ) noexcept = default;
 
+            /**
+             * Copy assignment operator.
+             * 
+             * Make this span span over the same range as the source span.
+             * 
+             * \param other The span to make a copy of.
+             */
             constexpr span& operator=( const span& other ) noexcept = default;
 
+            /**
+             * Obtain a mutable iterator to the beginning of the spanned range.
+             * 
+             * \return Returns a mutable iterator to the beginning of the spanned range.
+             */
             constexpr iterator begin() const noexcept;
 
+            /**
+             * Obtain a const-qualified iterator to the beginning of the spanned range.
+             * 
+             * \return Returns a const-qualified iterator to the beginning of the spanned range.
+             */
             constexpr const_iterator cbegin() const noexcept;
 
+            /**
+             * Obtain a mutable iterator to one-past-the-end of the spanned range.
+             * 
+             * \return Returns a mutable iterator to one-past-the-end of the spanned range.
+             */
             constexpr iterator end() const noexcept;
 
+            /**
+             * Obtain a const-qualified iterator to one-past-the-end of the spanned range.
+             * 
+             * \return Returns a const-qualified iterator to one-past-the-end of the spanned range.
+             */
             constexpr const_iterator cend() const noexcept;
 
+            /**
+             * Obtain a mutable iterator to the reverse-beginning of the spanned range.
+             * 
+             * \return Returns a mutable iterator to the reverse-beginning of the spanned range.
+             */
             constexpr reverse_iterator rbegin() const noexcept;
 
+            /**
+             * Obtain a const-qualified iterator to the reverse-beginning of the spanned range.
+             * 
+             * \return Returns a const-qualified iterator to the reverse-beginning of the spanned
+             *         range.
+             */
             constexpr const_reverse_iterator crbegin() const noexcept;
 
+            /**
+             * Obtain a mutable iterator to one-past-the-reverse-end of the spanned range.
+             * 
+             * \return Returns a mutable iterator to one-past-the-reverse-end of the spanned range.
+             */
             constexpr reverse_iterator rend() const noexcept;
 
+            /**
+             * Obtain a const-qualified iterator to one-past-the-reverse-end of the spanned range.
+             * 
+             * \return Returns a const-qualified iterator to one-past-the-reverse-end of the spanned
+             *         range.
+             */
             constexpr const_reverse_iterator crend() const noexcept;
 
+            /**
+             * Access the first element in the spanned range.
+             * 
+             * \return Returns the first element in the spanned range.
+             */
             constexpr reference front() const;
 
+            /**
+             * Access the last element in the spanned range.
+             * 
+             * \return Returns the last element in the spanned range.
+             */
             constexpr reference back() const;
 
+            /**
+             * Subscript operator.
+             * 
+             * Unchecked indexed access into the span.
+             * 
+             * \param idx The index of the element to access.
+             * 
+             * \return Returns the element with the given index in the spanned range.
+             */
             constexpr reference operator[]( index_type idx ) const;
 
+            /**
+             * Access the underlying contiguous data.
+             * 
+             * \return Returns a pointer to the first element in the spanned range.
+             */
             constexpr pointer data() const noexcept;
 
+            /**
+             * Obtain the number of elements in the spanned range.
+             * 
+             * \return Returns the number of elements in the spanned range.
+             */
             constexpr index_type size() const noexcept;
 
+            /**
+             * Obtain the size of the spanned range in bytes.
+             * 
+             * \return Returns the number of bytes in the spanned range.
+             */
             constexpr index_type size_bytes() const noexcept;
 
+            /**
+             * Check whether or not the spanned range has zero size.
+             * 
+             * \retval true  The spanned range has zero length.
+             * \retval false The spanned range is at least one element long.
+             */
             [[nodiscard]]
             constexpr bool empty() const noexcept;
 
+            /**
+             * Obtain a span over the first given number of elements of the spanned range.
+             * 
+             * \tparam Count The number of elements to obtain a sub-span over.
+             * 
+             * \return Returns a new span that spans over the first given number of elements in this
+             *         span's underlying range.
+             */
             template<std::size_t Count>
             constexpr span<element_type,Count> first() const;
 
+            /**
+             * Obtain a span over the first given number of elements of the spanned range.
+             * 
+             * \param Count The number of elements to obtain a sub-span over.
+             * 
+             * \return Returns a new span that spans over the first given number of elements in this
+             *         span's underlying range.
+             */
             constexpr span<element_type,dynamic_extent> first( std::size_t Count ) const;
 
+            /**
+             * Obtain a span over the last given number of elements of the spanned range.
+             * 
+             * \tparam Count The number of elements to obtain a sub-span over.
+             * 
+             * \return Returns a new span that spans over the last given number of elements in this
+             *         span's underlying range.
+             */
             template<std::size_t Count>
             constexpr span<element_type,Count> last() const;
 
+            /**
+             * Obtain a span over the last given number of elements of the spanned range.
+             * 
+             * \param Count The number of elements to obtain a sub-span over.
+             * 
+             * \return Returns a new span that spans over the last given number of elements in this
+             *         span's underlying range.
+             */
             constexpr span<element_type,dynamic_extent> last( std::size_t Count ) const;
 
+            /**
+             * Obtain a span over a sub-section of the spanned range.
+             * 
+             * \tparam Offset The offset, in number of elements, between the beginning of the new
+             *                span and the beginning of this span.
+             * \tparam Count  The number of elements to obtain a sub-span over.
+             * 
+             * \return Returns a new span that spans over the given number of elements in this
+             *         span's underlying range, and has the given offset from the beginning of this
+             *         span.
+             */
             template<std::size_t Offset, std::size_t Count = dynamic_extent>
             constexpr span<
                 element_type,
                 details::subspan_extent_v<Extent,Offset,Count>
             > subspan() const;
 
+            /**
+             * Obtain a span over a sub-section of the spanned range.
+             * 
+             * \param Offset The offset, in number of elements, between the beginning of the new
+             *               span and the beginning of this span.
+             * \param Count  The number of elements to obtain a sub-span over.
+             * 
+             * \return Returns a new span that spans over the given number of elements in this
+             *         span's underlying range, and has the given offset from the beginning of this
+             *         span.
+             */
             constexpr span<element_type,dynamic_extent>
             subspan( std::size_t Offset, std::size_t Count = dynamic_extent ) const;
 
         private:
-            pointer begin_pos;
-            pointer end_pos;
+            pointer begin_pos; //!< Pointer to the first element in the spanned range.
+            pointer end_pos;   //!< Pointer to one-past-the-last element in the spanned range.
     };
 
 }
