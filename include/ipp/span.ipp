@@ -21,9 +21,9 @@ namespace gsl {
     template<typename T, std::size_t Extent>
     constexpr span<T,Extent>::span( pointer first, pointer last ) :
         begin_pos( first ),
-        end_pos( last + 1 )
+        end_pos( last )
     {
-        return;
+        Expects( first <= last );
     }
 
     template<typename T, std::size_t Extent>
@@ -131,18 +131,21 @@ namespace gsl {
     template<typename T, std::size_t Extent>
     constexpr typename span<T,Extent>::reference
     span<T,Extent>::front() const {
+        Expects( !empty() );
         return *begin_pos;
     }
 
     template<typename T, std::size_t Extent>
     constexpr typename span<T,Extent>::reference
     span<T,Extent>::back() const {
+        Expects( !empty() );
         return *( end_pos - 1 );
     }
 
     template<typename T, std::size_t Extent>
     constexpr typename span<T,Extent>::reference
     span<T,Extent>::operator[]( index_type idx ) const {
+        Expects( idx >= 0 && idx < size() );
         return *( begin_pos + idx );
     }
 
@@ -176,12 +179,19 @@ namespace gsl {
     template<std::size_t Count>
     constexpr span<typename span<T,Extent>::element_type,Count>
     span<T,Extent>::first() const {
+        if constexpr ( Extent != dynamic_extent ) {
+            static_assert( Count <= Extent, "cannot make a sub-span larger than the source span" );
+        }
+        static_assert( Count != dynamic_extent, "static span extent cannot be dynamic" );
+
+        Expects( Count <= size() );
         return span( begin_pos, Count );
     }
 
     template<typename T, std::size_t Extent>
     constexpr span<typename span<T,Extent>::element_type,dynamic_extent>
     span<T,Extent>::first( std::size_t Count ) const {
+        Expects( Count <= size() );
         return span( begin_pos, Count );
     }
 
@@ -189,12 +199,19 @@ namespace gsl {
     template<std::size_t Count>
     constexpr span<typename span<T,Extent>::element_type,Count>
     span<T,Extent>::last() const {
+        if constexpr ( Extent != dynamic_extent ) {
+            static_assert( Count <= Extent, "cannot make a sub-span larger than the source span" );
+        }
+        static_assert( Count != dynamic_extent, "static span extent cannot be dynamic" );
+
+        Expects( Count <= size() );
         return span( end_pos - Count, Count );
     }
 
     template<typename T, std::size_t Extent>
     constexpr span<typename span<T,Extent>::element_type,dynamic_extent>
     span<T,Extent>::last( std::size_t Count ) const {
+        Expects( Count <= size() );
         return span( end_pos - Count, Count );
     }
 
@@ -204,12 +221,28 @@ namespace gsl {
         typename span<T,Extent>::element_type,
         details::subspan_extent_v<Extent,Offset,Count>
     > span<T,Extent>::subspan() const {
+        if constexpr ( Extent != dynamic_extent ) {
+            static_assert(
+                Offset <= Extent,
+                "cannot make a sub-span that begins past the end of the source span"
+            );
+            static_assert(
+                Offset + Count <= Extent,
+                "cannot make a sub-span that extends outside the source span"
+            );
+        }
+        static_assert( Count != dynamic_extent, "static span extent cannot be dynamic" );
+
+        Expects( Offset <= size() );
+        Expects( Offset + Count <= size() );
         return span( begin_pos + Offset, Count );
     }
 
     template<typename T, std::size_t Extent>
     constexpr span<typename span<T,Extent>::element_type,dynamic_extent>
     span<T,Extent>::subspan( std::size_t Offset, std::size_t Count ) const {
+        Expects( Offset <= size() );
+        Expects( Offset + Count <= size() );
         return span( begin_pos + Offset, Count );
     }
 

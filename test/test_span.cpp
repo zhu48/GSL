@@ -96,22 +96,18 @@ TEMPLATE_TEST_CASE_SIG(
             }
         }
 
-        gsl::span<T> dyn_ext_span(
-            std::data( test_data ),
-            std::data( test_data ) + std::size( test_data ) - 1
-        );
-        CHECK( dyn_ext_span.data() == std::data( test_data ) );
-        CHECK( dyn_ext_span.size() == std::size( test_data ) );
-        CHECK( dyn_ext_span.size_bytes() == std::size( test_data ) * sizeof( T ) );
+        T* const first = std::data( test_data );
+        T* const last = std::data( test_data ) + std::size( test_data );
+        gsl::span<T> dyn_ext_span( first, last );
+        CHECK( dyn_ext_span.data() == first );
+        CHECK( dyn_ext_span.size() == last - first );
+        CHECK( dyn_ext_span.size_bytes() == ( last - first ) * sizeof( T ) );
         CHECK( dyn_ext_span.empty() == std::empty( test_data ) );
 
-        gsl::span<T,Extent> stat_ext_span(
-            std::data( test_data ),
-            std::data( test_data ) + std::size( test_data )
-        );
-        CHECK( dyn_ext_span.data() == std::data( test_data ) );
-        CHECK( dyn_ext_span.size() == std::size( test_data ) );
-        CHECK( dyn_ext_span.size_bytes() == std::size( test_data ) * sizeof( T ) );
+        gsl::span<T,Extent> stat_ext_span( first, last );
+        CHECK( dyn_ext_span.data() == first );
+        CHECK( dyn_ext_span.size() == last - first );
+        CHECK( dyn_ext_span.size_bytes() == ( last - first ) * sizeof( T ) );
         CHECK( dyn_ext_span.empty() == std::empty( test_data ) );
     }
 

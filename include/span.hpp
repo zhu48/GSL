@@ -229,10 +229,10 @@ namespace gsl {
             constexpr span( pointer ptr, index_type count );
 
             /**
-             * Construct a span given pointers to the first and last elements in the range.
+             * Construct a span given pointers to the limits of the range.
              * 
              * \param first Pointer to the first elements in the range to span over.
-             * \param last  Pointer to the last element to span over.
+             * \param last  Pointer to one-past-the-last element to span over.
              */
             constexpr span( pointer first, pointer last );
 
