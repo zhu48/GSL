@@ -214,9 +214,8 @@ namespace gsl {
              * dynamic.
              */
             template<
-                typename = std::enable_if_t<
-                    Extent == 0 || Extent == dynamic_extent
-                >
+                bool Enable = Extent == 0 || Extent == dynamic_extent,
+                typename = std::enable_if_t<Enable>
             >
             constexpr span() noexcept;
 

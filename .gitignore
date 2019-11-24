@@ -57,3 +57,6 @@ Testing
 
 # Catch2
 DartConfiguration.tcl
+
+# Testing Targets
+test_span

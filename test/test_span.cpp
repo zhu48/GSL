@@ -31,17 +31,22 @@ constexpr auto ssize( const C& c )
 }
 
 template<typename T, std::ptrdiff_t N>
-constexpr std::ptrdiff_t ssize( const T (&array)[N] ) noexcept {
+// only the parameter's type is needed, and we are trying to deduce a C-array's size
+// NOLINTNEXTLINE(misc-unused-parameters,cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
+constexpr auto ssize( const T (&array)[N] ) noexcept -> std::ptrdiff_t {
     return N;
 }
 
+// test exercises span construction from C-style arrays
+// TEMPLATE_TEST_CASE_SIG macro uses C array
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
 TEMPLATE_TEST_CASE_SIG(
     "spans constructed from various sources have correct data, size, and emptiness",
     "[span][ctor][data][size]",
     ( ( typename T , std::size_t Extent ,   typename TestType            ), T, Extent, TestType ),
-    (   int        ,                   8,   int[8]                       ),
-    (   double     ,                  16,   double[16]                   ),
-    (   std::string,                  12,   std::string[12]              ),
+    (   int        ,                   8,   int[8]                       ), // NOLINT
+    (   double     ,                  16,   double[16]                   ), // NOLINT
+    (   std::string,                  12,   std::string[12]              ), // NOLINT
     (   int        ,                   4, ( std::array<int,4>          ) ),
     (   double     ,                   7, ( std::array<double,7>       ) ),
     (   std::string,                  12, ( std::array<std::string,12> ) ),
@@ -52,19 +57,23 @@ TEMPLATE_TEST_CASE_SIG(
     SECTION( "default-constructed span" ) {
         gsl::span<T> dyn_ext_span;
         CHECK( dyn_ext_span.data() == nullptr );
+        // NOLINTNEXTLINE(readability-container-size-empty) explicitly test the size() function
         CHECK( dyn_ext_span.size() == 0 );
         CHECK( dyn_ext_span.size_bytes() == 0 );
         CHECK( dyn_ext_span.empty() );
 
         gsl::span<T,0> stat_ext_span;
         CHECK( stat_ext_span.data() == nullptr );
+        // NOLINTNEXTLINE(readability-container-size-empty) explicitly test the size() function
         CHECK( stat_ext_span.size() == 0 );
         CHECK( stat_ext_span.size_bytes() == 0 );
         CHECK( stat_ext_span.empty() );
     }
 
     SECTION( "pointer-count-constructed span" ) {
-        TestType test_data;
+        TestType test_data{};
+        // clang-tidy has trouble with if constexpr
+        // NOLINTNEXTLINE(readability-braces-around-statements,bugprone-suspicious-semicolon)
         if constexpr ( Extent == gsl::dynamic_extent ) {
             const auto num_elems = GENERATE( take( 1, random<gsl::index>( 0, 32 ) ) );
 
@@ -87,7 +96,9 @@ TEMPLATE_TEST_CASE_SIG(
     }
 
     SECTION( "pointer-pair-constructed span" ) {
-        TestType test_data;
+        TestType test_data{};
+        // clang-tidy has trouble with if constexpr
+        // NOLINTNEXTLINE(readability-braces-around-statements,bugprone-suspicious-semicolon)
         if constexpr ( Extent == gsl::dynamic_extent ) {
             auto num_elems = GENERATE( take( 1, random<gsl::index>( 0, 32 ) ) );
 
@@ -97,7 +108,7 @@ TEMPLATE_TEST_CASE_SIG(
         }
 
         T* const first = std::data( test_data );
-        T* const last = std::data( test_data ) + std::size( test_data );
+        T* const last = std::addressof( gsl::at( test_data, std::size( test_data ) - 1 ) );
         gsl::span<T> dyn_ext_span( first, last );
         CHECK( dyn_ext_span.data() == first );
         CHECK( dyn_ext_span.size() == last - first );
@@ -112,7 +123,9 @@ TEMPLATE_TEST_CASE_SIG(
     }
 
     SECTION( "container-constructed span" ) {
-        TestType test_data;
+        TestType test_data{};
+        // clang-tidy has trouble with if constexpr
+        // NOLINTNEXTLINE(readability-braces-around-statements,bugprone-suspicious-semicolon)
         if constexpr ( Extent == gsl::dynamic_extent ) {
             auto num_elems = GENERATE( take( 1, random<gsl::index>( 0, 32 ) ) );
 
@@ -135,7 +148,9 @@ TEMPLATE_TEST_CASE_SIG(
     }
 
     SECTION( "span-constructed span" ) {
-        TestType test_data;
+        TestType test_data{};
+        // clang-tidy has trouble with if constexpr
+        // NOLINTNEXTLINE(readability-braces-around-statements,bugprone-suspicious-semicolon)
         if constexpr ( Extent == gsl::dynamic_extent ) {
             auto num_elems = GENERATE( take( 1, random<gsl::index>( 0, 32 ) ) );
 
@@ -173,13 +188,16 @@ TEMPLATE_TEST_CASE_SIG(
     }
 }
 
+// test exercises span construction from C-style arrays
+// TEMPLATE_TEST_CASE_SIG macro uses C array
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
 TEMPLATE_TEST_CASE_SIG(
     "span element access behaves as expected",
     "[span][access]",
     ( ( typename T  , std::size_t Extent ,   typename TestType            ), T, Extent, TestType ),
-    (   std::int16_t,                  14,   std::int16_t[14]             ),
-    (   std::int32_t,                  14,   std::int32_t[14]             ),
-    (   std::int64_t,                  14,   std::int64_t[14]             ),
+    (   std::int16_t,                  14,   std::int16_t[14]             ), // NOLINT
+    (   std::int32_t,                  14,   std::int32_t[14]             ), // NOLINT
+    (   std::int64_t,                  14,   std::int64_t[14]             ), // NOLINT
     (   std::int16_t,                   3, ( std::array<std::int16_t,3> ) ),
     (   std::int32_t,                   3, ( std::array<std::int32_t,3> ) ),
     (   std::int64_t,                   3, ( std::array<std::int64_t,3> ) ),
@@ -187,7 +205,9 @@ TEMPLATE_TEST_CASE_SIG(
     (   std::int32_t, gsl::dynamic_extent,   std::vector<std::int32_t>    ),
     (   std::int64_t, gsl::dynamic_extent,   std::vector<std::int64_t>    )
 ) {
-    TestType test_data;
+    TestType test_data{};
+    // clang-tidy has trouble with if constexpr
+    // NOLINTNEXTLINE(readability-braces-around-statements,bugprone-suspicious-semicolon)
     if constexpr ( Extent == gsl::dynamic_extent ) {
         const auto num_elems = GENERATE( take( 1, random<gsl::index>( 0, 32 ) ) );
 
@@ -227,7 +247,7 @@ TEMPLATE_TEST_CASE_SIG(
     gsl::span<T> mutable_span( test_data );
     std::copy( reference_data.cbegin(), reference_data.cend(), mutable_span.begin() );
     for ( gsl::index i = 0; i < ssize( test_data ); ++i ) {
-        CHECK( test_data[i] == reference_data[i] );
+        CHECK( gsl::at( test_data, i ) == reference_data[i] );
     }
 }
 
@@ -235,12 +255,14 @@ TEST_CASE(
     "subspans obtained from existing spans have correct data, size, and emptiness",
     "[span][ctor][data][size]"
 ) {
-    int test_arr[15];
+    constexpr std::size_t test_size = 15;
+
+    std::array<int,test_size> test_arr{};
 
     const gsl::span<int> original_dyn_span( test_arr );
-    const gsl::span<int,15> original_stat_span( test_arr );
+    const gsl::span<int,test_size> original_stat_span( test_arr );
     const gsl::span<const int> original_const_dyn_span( test_arr );
-    const gsl::span<const int,15> original_const_stat_span( test_arr );
+    const gsl::span<const int,test_size> original_const_stat_span( test_arr );
 
     SECTION( "subspans created using span::first()" ) {
         const auto test_span_0 = original_dyn_span.first<7>();
@@ -294,49 +316,49 @@ TEST_CASE(
 
     SECTION( "subspans created using span::last()" ) {
         const auto test_span_0 = original_dyn_span.last<7>();
-        CHECK( test_span_0.data() == std::data( test_arr ) + 8 );
+        CHECK( test_span_0.data() == &(test_arr[8]) );
         CHECK( test_span_0.size() == 7 );
         CHECK( test_span_0.size_bytes() == 7 * sizeof( int ) );
         CHECK( !test_span_0.empty() );
 
         const auto test_span_1 = original_dyn_span.last( 7 );
-        CHECK( test_span_1.data() == std::data( test_arr ) + 8 );
+        CHECK( test_span_1.data() == &(test_arr[8]) );
         CHECK( test_span_1.size() == 7 );
         CHECK( test_span_1.size_bytes() == 7 * sizeof( int ) );
         CHECK( !test_span_1.empty() );
 
         const auto test_span_2 = original_stat_span.last<7>();
-        CHECK( test_span_2.data() == std::data( test_arr ) + 8 );
+        CHECK( test_span_2.data() == &(test_arr[8]) );
         CHECK( test_span_2.size() == 7 );
         CHECK( test_span_2.size_bytes() == 7 * sizeof( int ) );
         CHECK( !test_span_2.empty() );
 
         const auto test_span_3 = original_stat_span.last( 7 );
-        CHECK( test_span_3.data() == std::data( test_arr ) + 8 );
+        CHECK( test_span_3.data() == &(test_arr[8]) );
         CHECK( test_span_3.size() == 7 );
         CHECK( test_span_3.size_bytes() == 7 * sizeof( int ) );
         CHECK( !test_span_3.empty() );
 
         const auto test_span_4 = original_const_dyn_span.last<7>();
-        CHECK( test_span_4.data() == std::data( test_arr ) + 8 );
+        CHECK( test_span_4.data() == &(test_arr[8]) );
         CHECK( test_span_4.size() == 7 );
         CHECK( test_span_4.size_bytes() == 7 * sizeof( int ) );
         CHECK( !test_span_4.empty() );
 
         const auto test_span_5 = original_const_dyn_span.last( 7 );
-        CHECK( test_span_5.data() == std::data( test_arr ) + 8 );
+        CHECK( test_span_5.data() == &(test_arr[8]) );
         CHECK( test_span_5.size() == 7 );
         CHECK( test_span_5.size_bytes() == 7 * sizeof( int ) );
         CHECK( !test_span_5.empty() );
 
         const auto test_span_6 = original_const_stat_span.last<7>();
-        CHECK( test_span_6.data() == std::data( test_arr ) + 8 );
+        CHECK( test_span_6.data() == &(test_arr[8]) );
         CHECK( test_span_6.size() == 7 );
         CHECK( test_span_6.size_bytes() == 7 * sizeof( int ) );
         CHECK( !test_span_6.empty() );
 
         const auto test_span_7 = original_const_stat_span.last( 7 );
-        CHECK( test_span_7.data() == std::data( test_arr ) + 8 );
+        CHECK( test_span_7.data() == &(test_arr[8]) );
         CHECK( test_span_7.size() == 7 );
         CHECK( test_span_7.size_bytes() == 7 * sizeof( int ) );
         CHECK( !test_span_7.empty() );
@@ -344,49 +366,49 @@ TEST_CASE(
 
     SECTION( "subspans created using span::subspan()" ) {
         const auto test_span_0 = original_dyn_span.subspan<2,7>();
-        CHECK( test_span_0.data() == std::data( test_arr ) + 2 );
+        CHECK( test_span_0.data() == &(test_arr[2]) );
         CHECK( test_span_0.size() == 7 );
         CHECK( test_span_0.size_bytes() == 7 * sizeof( int ) );
         CHECK( !test_span_0.empty() );
 
         const auto test_span_1 = original_dyn_span.subspan( 2, 7 );
-        CHECK( test_span_1.data() == std::data( test_arr ) + 2 );
+        CHECK( test_span_1.data() == &(test_arr[2]) );
         CHECK( test_span_1.size() == 7 );
         CHECK( test_span_1.size_bytes() == 7 * sizeof( int ) );
         CHECK( !test_span_1.empty() );
 
         const auto test_span_2 = original_stat_span.subspan<2,7>();
-        CHECK( test_span_2.data() == std::data( test_arr ) + 2 );
+        CHECK( test_span_2.data() == &(test_arr[2]) );
         CHECK( test_span_2.size() == 7 );
         CHECK( test_span_2.size_bytes() == 7 * sizeof( int ) );
         CHECK( !test_span_2.empty() );
 
         const auto test_span_3 = original_stat_span.subspan( 2, 7 );
-        CHECK( test_span_3.data() == std::data( test_arr ) + 2 );
+        CHECK( test_span_3.data() == &(test_arr[2]) );
         CHECK( test_span_3.size() == 7 );
         CHECK( test_span_3.size_bytes() == 7 * sizeof( int ) );
         CHECK( !test_span_3.empty() );
 
         const auto test_span_4 = original_const_dyn_span.subspan<2,7>();
-        CHECK( test_span_4.data() == std::data( test_arr ) + 2 );
+        CHECK( test_span_4.data() == &(test_arr[2]) );
         CHECK( test_span_4.size() == 7 );
         CHECK( test_span_4.size_bytes() == 7 * sizeof( int ) );
         CHECK( !test_span_4.empty() );
 
         const auto test_span_5 = original_const_dyn_span.subspan( 2, 7 );
-        CHECK( test_span_5.data() == std::data( test_arr ) + 2 );
+        CHECK( test_span_5.data() == &(test_arr[2]) );
         CHECK( test_span_5.size() == 7 );
         CHECK( test_span_5.size_bytes() == 7 * sizeof( int ) );
         CHECK( !test_span_5.empty() );
 
         const auto test_span_6 = original_const_stat_span.subspan<2,7>();
-        CHECK( test_span_6.data() == std::data( test_arr ) + 2 );
+        CHECK( test_span_6.data() == &(test_arr[2]) );
         CHECK( test_span_6.size() == 7 );
         CHECK( test_span_6.size_bytes() == 7 * sizeof( int ) );
         CHECK( !test_span_6.empty() );
 
         const auto test_span_7 = original_const_stat_span.subspan( 2, 7 );
-        CHECK( test_span_7.data() == std::data( test_arr ) + 2 );
+        CHECK( test_span_7.data() == &(test_arr[2]) );
         CHECK( test_span_7.size() == 7 );
         CHECK( test_span_7.size_bytes() == 7 * sizeof( int ) );
         CHECK( !test_span_7.empty() );

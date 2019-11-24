@@ -2,7 +2,7 @@
 namespace gsl {
 
     template<typename T, std::size_t Extent>
-    template<typename>
+    template<bool Enable, typename>
     constexpr span<T,Extent>::span() noexcept :
         begin_pos( nullptr ),
         end_pos( nullptr )
