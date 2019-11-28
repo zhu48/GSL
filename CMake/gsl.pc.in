@@ -1,0 +1,7 @@
+includedir=@CMAKE_INSTALL_FULL_INCLUDEDIR@
+
+Name: GSL
+Description: C++ Core Guidelines Guideline Support Library for C++17
+URL: https://github.com/zhu48/GSL
+Version: @GSL_VERSION@
+Cflags: -I${includedir}

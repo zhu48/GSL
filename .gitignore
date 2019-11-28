@@ -55,6 +55,14 @@ CMakeFiles
 CTestTestfile.cmake
 Testing
 
+# CPack
+CPackConfig.cmake
+CPackSourceConfig.cmake
+GSLConfig.cmake
+GSLConfigVersion.cmake
+gsl.pc
+install_manifest.txt
+
 # Catch2
 DartConfiguration.tcl
 
